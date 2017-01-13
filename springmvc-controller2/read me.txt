@@ -1,0 +1,52 @@
+1.MultiActionController
+	用于支持在一个控制器里添加多个功能处理方法，即将多个请求的处理方法放置到一个控制器里
+	功能处理方法格式
+		public (ModelAndView | Map | String | void) 
+			actionName(HttpServletRequest request, 
+					   HttpServletResponse response, 
+					 [,HttpSession session] 
+					 [,AnyObject]);
+					 
+	1、返回值：即模型和视图部分；
+		ModelAndView：模型和视图部分，之前已经见过了；
+		Map：只返回模型数据，逻辑视图名会根据RequestToViewNameTranslator实现类来计算，稍候讨论；
+		String：只返回逻辑视图名；
+		void：表示该功能方法直接写出response响应（如果其他返回值类型（如Map）返回null则和void进行相同的处理）；
+		
+	2、actionName：功能方法名字；由methodNameResolver根据请求信息解析功能方法名，通过反射调用；
+	
+	3、形参列表：顺序固定，“[]”表示可选，我们来看看几个示例吧：
+		//表示到新增页面
+		public ModelAndView toAdd(HttpServletRequest request, HttpServletResponse response);
+		//表示新增表单提交，在最后可以带着命令对象
+		public ModelAndView add(HttpServletRequest request, HttpServletResponse response, UserModel user);
+		//列表，但只返回模型数据，视图名会通过RequestToViewNameTranslator实现来计算
+		public Map list(HttpServletRequest request, HttpServletResponse response);
+		//文件下载，返回值类型为void，表示该功能方法直接写响应
+		public void fileDownload(HttpServletRequest request, HttpServletResponse response)
+		//第三个参数可以是session
+		public ModelAndView sessionWith(HttpServletRequest request, HttpServletResponse response, HttpSession session);
+		//如果第三个参数是session，那么第四个可以是命令对象，顺序必须是如下顺序
+		public void sessionAndCommandWith(HttpServletRequest request, HttpServletResponse response, HttpSession session, UserModel user)
+		
+	4、异常处理方法，MultiActionController提供了简单的异常处理，即在请求的功能处理过程中遇到异常会交给异常处理方法进行处理，式如下所示：
+		public ModelAndView anyMeaningfulName(HttpServletRequest request, HttpServletResponse response, ExceptionClass exception)
+		MultiActionController会使用最接近的异常类型来匹配对应的异常处理方法
+		
+		
+ MultiActionController类实现
+ 	类定义：public class MultiActionController extends AbstractController implements LastModified ，继承了AbstractController，并实现了LastModified接口，默认返回-1；
+ 	delegate：功能处理的委托对象，即我们要调用请求处理方法所在的对象，默认是this；
+	methodNameResolver：功能处理方法名解析器，即根据请求信息来解析需要执行的delegate的功能处理方法的方法名。
+	
+	a，InternalPathMethodNameResolver:MultiActionController的默认实现
+	b，ParameterMethodNameResolver：提供从请求参数解析功能处理方法的方法名，顺序
+		1、 methodParamNames：根据请求的参数名解析功能方法名（功能方法名和参数名同名）
+			<property name="methodParamNames" value="list,create,update"/>    
+			<input type="image" name="list">
+		2、paramName：根据请求参数名的值解析功能方法名，默认的参数名是action，即请求的参数中含
+			action=list
+		3、logicalMappings：逻辑功能方法名到真实功能方法名映射，
+			即如果步骤1或2解析出逻辑功能方法名为doList（逻辑的），将会被重新映射为list功能方法名
+		4、defaultMethodName：默认的方法名，当以上策略失败时默认调用的方法名。
+	c，PropertiesMethodNameResolver：提供自定义的从请求URL解析功能方法的方法名，使用一组用户自定义的模式到功能方法名的映射，映射使用Properties对象存放，

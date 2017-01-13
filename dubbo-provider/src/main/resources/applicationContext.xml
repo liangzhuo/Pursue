@@ -1,0 +1,26 @@
+<beans 
+	xmlns="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+  	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context 
+		http://www.springframework.org/schema/context/spring-context.xsd
+		http://code.alibabatech.com/schema/dubbo
+		http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+		
+	<context:component-scan base-package="com.liang.dubbo"/>
+	<!-- 提供方应用名称信息，相当于起一个名字，dubbo管理页面比较清晰是哪个应用暴露出来的 -->
+	<dubbo:application name="dubbo_provider" owner="programmer" organization="dubbox"/>
+	
+	<!-- 使用zookeeper注册中心暴露服务地址 -->
+	<dubbo:registry address="zookeeper://192.168.0.226:2181" check="false" subscribe="false" register=""></dubbo:registry>
+	<dubbo:protocol name="rest" port="8888" threads="500" contextpath="services" server="tomcat" accepts="500"
+                     extension="com.alibaba.dubbo.rpc.protocol.rest.support.LoggingFilter"/>
+	<!-- 要暴露的服务接口 -->
+	<dubbo:service interface="com.liang.dubbo.service.UserService" ref="userService" protocol="dubbo"/>
+	
+	<dubbo:service interface="com.liang.dubbo.service.UserRestService" ref="userRestService" protocol="rest"  validation="true"/>
+</beans>

@@ -1,0 +1,15 @@
+请求参数（String）——>命令对象属性（可能是任意类型）的类型转换，即数据绑定时的类型转换，
+使用PropertyEditor实现绑定时的类型转换。
+
+http://localhost:8091/springmvc-databind-validate/dataBind?username=zhang&bool=yes&schoolInfo.specialty=computer&hobbyList[0]=program&hobbyList[1]=music&map[key1]=value1&map[key2]=value2&phoneNumber=010-12345678&date=2012-03-18 16:48:48&state=blocked
+
+只需要将我们自定义的PropertyEditor放在和你的模型类同包下即可，
+且你的Editor命名规则必须是“模型类名Editor”，这样Spring会自动使用标准JavaBean架构进行自动识别
+
+三种方式进行数据转转绑定
+1.编写属性转换编辑器，在控制器中重写绑定方法
+2.使用WebBindingInitializer
+3.将编辑器和转换类型放在同一包下
+
+PropertyEditor被限制为只能String<——>Object之间转换，不能Object<——>Object，
+Spring3提供了更强大的类型转换（TypeConversion）支持，它可以在任意对象之间进行类型转换，不仅仅是String<——>Object。

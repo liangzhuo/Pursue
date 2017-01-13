@@ -1,0 +1,28 @@
+①：类型转换：内部的ConversionService会根据S源类型/T目标类型自动选择相应的Converter SPI进行类型转换，而且是强类型的，能在任意类型数据之间进行转换；
+②：数据验证：支持JSR-303验证框架，如将@Valid放在需要验证的目标类型上即可；
+③：格式化显示：其实就是任意目标类型---->String的转换，完全可以使用Converter SPI完成。
+
+Spring为了更好的诠释格式化/解析功能提供了Formatter SPI，支持根据Locale信息进行格式化/解析，而且该套SPI可以支持字段/参数级别的细粒度格式化/解析，流程如下：
+①：类型解析（转换）：String---->T类型目标对象的解析，和PropertyEditor类似；
+③：格式化显示：任意目标类型---->String的转换，和PropertyEditor类似。
+
+①、类型转换：首先表单数据（全部是字符串）通过WebDataBinder进行绑定到命令对象，内部通过Converter SPI实现；
+②：数据验证：使用JSR-303验证框架进行验证；
+③：格式化显示：在表单页面可以通过如下方式展示通过内部通过Converter SPI格式化的数据和错误信息：
+
+7.2.2、Spring3开始的类型转换系统
+Spring3引入了更加通用的类型转换系统，其定义了SPI接口（Converter等）和相应的运行时执行类型转换的API（ConversionService等），在Spring中它和PropertyEditor功能类似，可以替代PropertyEditor来转换外部Bean属性的值到Bean属性需要的类型。
+ 
+该类型转换系统是Spring通用的，其定义在org.springframework.core.convert包中，不仅仅在Spring Web MVC场景下。目标是完全替换PropertyEditor，提供无状态、强类型且可以在任意类型之间转换的类型转换系统，可以用于任何需要的地方，如SpEL、数据绑定。
+ 
+Converter SPI完成通用的类型转换逻辑，如java.util.Date<---->java.lang.Long或java.lang.String---->PhoneNumberModel等。
+1、类型转换器：提供类型转换的实现支持。
+（1、Converter：类型转换器，用于转换S类型到T类型，此接口的实现必须是线程安全的且可以被共享。
+（2、GenericConverter和ConditionalGenericConverter：GenericConverter接口实现能在多种类型之间进行转换，ConditionalGenericConverter是有条件的在多种类型之间进行转换。
+（3、ConverterFactory：工厂模式的实现，用于选择将一种S源类型转换为R类型的子类型T的转换器的工厂接口。
+2、类型转换器注册器、类型转换服务：提供类型转换器注册支持，运行时类型转换API支持。
+（1、ConverterRegistry：类型转换器注册支持，可以注册/删除相应的类型转换器。
+（2、ConversionService：运行时类型转换服务接口，提供运行期类型转换的支持。
+Spring提供了两个默认实现（其都实现了ConverterRegistry、ConversionService接口）:
+DefaultConversionService:默认的类型转换服务实现；
+DefaultFormattingConversionService：带数据格式化支持的类型转换服务实现，一般使用该服务实现即可。

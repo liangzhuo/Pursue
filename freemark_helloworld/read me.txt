@@ -1,0 +1,44 @@
+1.FreeMarker是什么
+     模板引擎：一种基于模板的、用来生成输出文本的通用工具
+     基于Java的开发包和类库
+     
+  Template file 
+  						output
+  java objects 
+  
+  
+2.介绍-FreeMarker能做什么  
+  MVC框架中的View层组件
+  Html页面静态化
+     代码生成工具
+  CMS模板引擎
+     页面栏目动态定制
+     
+3.介绍-为什么要用FreeMarker
+      程序逻辑(Java 程序)和页面设计(FreeMarker模板)分离
+      分层清晰，利于分工合作
+      主流Web框架良好的集成（struts2,springmvc）
+      简单易学、功能强大
+      免费开源     
+      
+      
+4.FreeMarker优点
+  FreeMarker不依赖于Servlet，网络或Web 环境
+  FreeMarker一开始就是为MVC设计的，它仅仅专注于展示
+     你可以从任意位置加载模板；从类路径下，从数据库中等
+     易于定义特设的宏和函数     
+     
+     
+Freemarker是通过freemarker.template.Configuration这个对象对模板进行加载的（它也处理创建和缓存预解析模板的工作），
+然后我们通过getTemplate方法获得你想要的模板，有一点要记住freemarker.template.Configuration在你整个应用必须保证唯一实例。      
+5.1、在Configuration 中可以使用下面的方法来方便建立三种模板加载
+	a.在磁盘的文件系统上设置了一个明确的目录，它确定了从哪里加载模板。不要说可能，File 参数肯定是一个存在的目录。否则，将会抛出异常。
+	void setDirectoryForTemplateLoading(File dir); 
+	
+	b.使用了一个Class 类型的参数和一个前缀。这是让你来指定什么时候通过相同的机制来加载模板，不过是用Java 的ClassLoader 来加载类。这就意味着传
+入的Class 参数会被用来调用Class.getResource()方法来找到模板。在实际运行的环境中，类加载机制是首选用来加载模板的方法，因为通常情况下，从类路径下加载文件的这种机制，要比从文件系统的特定目录位置加载安全而且简单。 
+	void setClassForTemplateLoading(Class cl, String prefix);
+	
+	c.需要Web 应用的上下文和一个基路径作为参数，这个基路径是Web 应用根路径（WEB-INF 目录的上级目录）的相对路径。那么加载器将会从Web 应用目录开
+始加载模板
+	void setServletContextForTemplateLoading(Object servletContext, String path); 

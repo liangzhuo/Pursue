@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+			"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 此处命名空间为使用合理描述参数和SQL语句返回值的接口 -->
+<mapper namespace="com.liang.mybatis.inter.IUserOperation">
+	<select id="selectUserById" parameterType="int" resultType="User">
+		select * from user where id = #{id}
+	</select>
+</mapper>

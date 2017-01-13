@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" 
+		"http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<typeAliases>
+		<typeAlias alias="User" type="com.liang.mybatis.model.User"/>
+		<typeAlias alias="Article" type="com.liang.mybatis.model.Article"/>
+	</typeAliases>
+	
+	<mappers>
+		<mapper resource="com/liang/mybatis/model/User.xml"/>
+	</mappers>
+</configuration>

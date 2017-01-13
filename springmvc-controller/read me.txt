@@ -1,0 +1,152 @@
+1.AbstractController使用方法
+	a，继承AbstractController
+	b，实现handleRequestInternal方法
+	
+2.Last-Modified缓存机制
+（1、在客户端第一次输入url时，服务器端会返回内容和状态码200表示请求成功并返回了内容；
+	同时会添加一个“Last-Modified”的响应头表示此文件在服务器上的最后更新时间，
+	如“Last-Modified:Wed, 14 Mar 2012 10:22:42 GMT”表示最后更新时间为（2012-03-14 10：22）；
+（2、客户端第二次请求此URL时，客户端会向服务器发送请求头 “If-Modified-Since”，
+	询问服务器该时间之后当前请求内容是否有被修改过，
+	如“If-Modified-Since: Wed, 14 Mar 2012 10:22:42 GMT”，
+	如果服务器端的内容没有变化，则自动返回 HTTP 304状态码（只要响应头，内容为空，这样就节省了网络带宽）。
+	Spring判断是否过期，通过如下代码，即请求的“If-Modified-Since” 大于等于当前的getLastModified方法的时间戳，
+	则认为没有修改：
+	this.notModified = (ifModifiedSince >= (lastModifiedTimestamp / 1000 * 1000));	
+	
+3.客户端强制缓存过期
+（1、可以按ctrl+F5强制刷新（
+	会添加请求头 HTTP1.0 Pragma:no-cache和 
+	HTTP1.1 Cache-Control:no-cache、If-Modified-Since请求头被删除）
+	表示强制获取服务器内容，不缓存。
+（2、在请求的url后边加上时间戳来重新获取内容，加上时间戳后浏览器就认为不是同一份内容：
+	http://sishuok.com/?2343243243 和 http://sishuok.com/?34334344 是两次不同的请求。
+	
+	
+4.关于缓存
+	此处只列举了部分缓存控制，详细介绍超出了本书的范围，
+	强烈推荐： http://www.mnot.net/cache_docs/
+		（中文版http://www.chedong.com/tech/cache_docs.html） 详细了解HTTP缓存控制及为什么要缓存。
+ 
+	缓存的目的是减少相应延迟 和 减少网络带宽消耗，比如css、js、图片这类静态资源应该进行缓存。
+	实际项目一般使用反向代理服务器（如nginx、apache等）进行缓存。	
+	
+5.Controller
+	ServletForwardingController：将接收到的请求转发到一个命名的servlet
+	BaseCommandController：命令控制器通用基类
+		1、数据绑定：请求参数绑定到一个command object（命令对象，非GoF里的命令设计模式），这里的命令对象是指绑定请求参数的任何POJO对象；
+			   commandClass：表示命令对象实现类，如UserModel；
+			   commandName：表示放入请求的命令对象名字（默认command），request.setAttribute(commandName, commandObject);
+ 
+		2、验证功能：提供Validator注册功能，注册的验证器会验证命令对象属性数据是否合法；
+   			validators：通过该属性注入验证器，验证器用来验证命令对象属性是否合法；
+ 
+			该抽象类没有没有提供流程功能，只是提供了一些公共的功能，实际使用时需要使用它的子类。	
+	AbstractCommandController：
+		实现该控制器来创建命令控制器，该控制器能把自动封装请求参数到一个命令对象，而且提供了验证功能。
+		
+	AbstractFormController:
+		用于支持带步骤的表单提交的命令控制器基类，使用该控制器可以完成：
+		1、定义表单处理（表单的渲染），并从控制器获取命令对象构建表单；
+		2、提交表单处理，当用户提交表单内容后，Ab|stractFormController可以将用户请求的数据绑定到命令对象，并可以验证表单内容、对命令对象进行处理。
+		 bindOnNewForm：是否在进行表单展示时绑定请求参数到表单对象，默认false，不绑定；
+    	 sessionForm：
+    	 	session表单模式，如果开启（true）则会将表单对象放置到session中，
+    	 	从而可以跨越多次请求保证数据不丢失（多步骤表单常使用该方式，详解AbstractWizardFormController），默认false；
+	 
+	     Object formBackingObject(HttpServletRequest request) ：
+	     	提供给表单展示时使用的表单对象（form object表单要展示的默认数据），
+	     	默认通过commandName暴露到请求给展示表单；
+	     Map referenceData(HttpServletRequest request, Object command, Errors errors)：
+     		展示表单时需要的一些引用数据（比如用户注册，可能需要选择工作地点，这些数据可以通过该方法提供），如：
+     		
+    SimpleFormController:
+    	提供了更好的两步表单支持：
+		1、准备要展示的数据，并到表单展示页面；
+		2、提交数据数据进行处理。
+		setCommandClass和setCommandName：分别设置了命令对象的实现类和名字；
+		formBackingObject和referenceData：提供了表单展示需要的视图；
+		doSubmitAction：用于执行表单提交动作，由onSubmit方法调用，如果不需要请求/响应对象或进行数据验证，可以直接使用doSubmitAction方法进行功能处理。
+		formView：表示展示表单时显示的页面；
+		successView：表示处理成功时显示的页面；“redirect:/success”表示成功处理后重定向到/success控制器；防止表单重复提交；
+		
+	CancellableFormController
+		一个可取消的表单控制器，继承SimpleFormController，额外提供取消表单功能。
+		1、表单展示：和SimpleFormController一样；
+		2、表单取消：和SimpleFormController一样；
+		3、表单成功提交：取消功能处理方法为：onCancel(Object command)，而且默认返回cancelView属性指定的逻辑视图名。
+		cancelParamKey：用于判断是否是取消的请求参数名，默认是_cancel，即如果请求参数数据中含有名字_cancel则表示是取消，将调用onCancel功能处理方法；
+		cancelView：表示取消时时显示的页面；“redirect:/cancel”表示成功处理后重定向到/cancel控制器；防止表单重复提交；
+		
+	AbstractWizardFormController
+		向导控制器类提供了多步骤（向导）表单的支持
+		PARAM_TARGET = "_target"：
+		用于选择向导中的要使用的页面参数名前缀，如“_target0”则选择第0个页面显示，即图中的“wizard/baseInfo”，以此类推，如“_target1”将选择第1页面，要得到的页码为去除前缀“_target”后的数字即是；
+		PARAM_FINISH = "_finish"：
+		如果请求参数中有名为“_finish”的参数，表示向导成功结束，将会调用processFinish方法进行完成时的功能处理；
+		PARAM_CANCEL = "_cancel"：
+		如果请求参数中有名为“_cancel”的参数，表示向导被取消，将会调用processCancel方法进行取消时的功能处理；
+		向导中的命令对象：
+		向导中的每一个步骤都会把相关的参数绑定到命令对象，该表单对象默认放置在session中，从而可以跨越多次请求得到该命令对象。
+		
+		page页码：是根据请求中以“_target”开头的参数名来确定的，如“_target0”，则页码为0；
+		referenceData：提供每一页需要的表单支持对象，如完善学校信息需要学校类型，page页码从0开始（而且根据请求参数中以“_target”开头的参数来确定当前页码，如_target1，则page=1）；
+		validatePage：验证当前页的命令对象数据，验证应根据page页码来分步骤验证；
+		postProcessPage：验证成功后的后处理；
+		processFinish：成功时执行的方法，此处直接重定向到/success控制器（详见CancelController）；
+		processCancel：取消时执行的方法，此处直接重定向到/cancel控制器（详见SuccessController）；
+		allowDirtyBack和allowDirtyForward：决定在当前页面验证失败时，是否允许向导前移和后退，默认false不允许；
+		onBindAndValidate(HttpServletRequest request, Object command, BindException errors, int page)：允许覆盖默认的绑定参数到命令对象和验证流程。
+		
+	ParameterizableViewController
+		参数化视图控制器，不进行功能处理（即静态视图），根据参数的逻辑视图名直接选择需要展示的视图
+		<bean name="/parameterizableView"   
+		class="org.springframework.web.servlet.mvc.ParameterizableViewController">  
+		<property name="viewName" value="success"/>  
+		</bean>  
+		该控制器接收到请求后直接选择参数化的视图，这样的好处是在配置文件中配置，从而避免程序的硬编码，比如像帮助页面等不需要进行功能处理，因此直接使用该控制器映射到视图。
+		
+	AbstractUrlViewController
+		提供根据请求URL路径直接转化为逻辑视图名的支持基类，即不需要功能处理，直接根据URL计算出逻辑视图名，并选择具体视图进行展示：
+		urlDecode：是否进行url解码，不指定则默认使用服务器编码进行解码（如Tomcat默认ISO-8859-1）；
+		urlPathHelper：用于解析请求路径的工具类，默认为org.springframework.web.util.UrlPathHelper。
+		 
+		UrlFilenameViewController是它的一个实现者，因此我们应该使用UrlFilenameViewController。
+		
+	UrlFilenameViewController
+		将请求的URL路径转换为逻辑视图名并返回的转换控制器，即不需要功能处理，直接根据URL计算出逻辑视图名，并选择具体视图进行展示：
+		<bean name="/index1/*"   
+		class="org.springframework.web.servlet.mvc.UrlFilenameViewController"/>  
+		<bean name="/index2/**"   
+		class="org.springframework.web.servlet.mvc.UrlFilenameViewController"/>  
+		<bean name="/*.html"   
+		class="org.springframework.web.servlet.mvc.UrlFilenameViewController"/>  
+		<bean name="/index3/*.html"   
+		class="org.springframework.web.servlet.mvc.UrlFilenameViewController"/> 
+		/index1/*：可以匹配/index1/demo，但不匹配/index1/demo/demo，如/index1/demo逻辑视图名为demo；
+		/index2/**：可以匹配/index2路径下的所有子路径，如匹配/index2/demo，或/index2/demo/demo，“/index2/demo”的逻辑视图名为demo，而“/index2/demo/demo”逻辑视图名为demo/demo；
+		/*.html：可以匹配如/abc.html，逻辑视图名为abc，后缀会被删除（不仅仅可以是html）；
+		/index3/*.html：可以匹配/index3/abc.html，逻辑视图名也是abc;
+		
+		?    匹配一个字符，如/index? 可以匹配 /index1 ， 但不能匹配 /index 或 /index12  
+		*    匹配零个或多个字符，如/index1/*，可以匹配/index1/demo，但不匹配/index1/demo/demo 
+		**   匹配零个或多个路径，如/index2/**：可以匹配/index2路径下的所有子路径，如匹配/index2/demo，或/index2/demo/demo 
+		 
+		如果我有如下模式，那Spring该选择哪一个执行呢？当我的请求为“/long/long”时如下所示： 
+		/long/long 
+		/long/**/abc  
+		/long/** 
+		/** 
+		Spring的AbstractUrlHandlerMapping使用：最长匹配优先； 
+		如请求为“/long/long” 将匹配第一个“/long/long”，但请求“/long/acd” 则将匹配 “/long/**”，如请求“/long/aa/abc”则匹配“/long/**/abc”，如请求“/abc”则将匹配“/**” 
+		
+		prefix：生成逻辑视图名的前缀；
+		suffix：生成逻辑视图名的后缀；
+		
+		<bean name="/*.htm" class="org.springframework.web.servlet.mvc.UrlFilenameViewController">  
+		        <property name="prefix" value="test"/>  
+		        <property name="suffix" value="test"/>  
+		</bean>  
+		当prefix=“test”，suffix=“test”，如上所示的/*.htm：可以匹配如/abc.htm，但逻辑视图名将变为testabctest。
+	
+		

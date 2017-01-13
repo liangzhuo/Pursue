@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans 
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mongod="http://www.springframework.org/schema/data/mongo"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+						http://www.springframework.org/schema/beans/spring-beans-3.2.xsd  
+						http://www.springframework.org/schema/context                
+						http://www.springframework.org/schema/context/spring-context-3.2.xsd
+						http://www.springframework.org/schema/data/mongo
+						http://www.springframework.org/schema/data/mongo/spring-mongo-1.8.xsd">
+						
+	<context:annotation-config />
+	
+	<!-- 扫描实现 -->
+    <context:component-scan base-package="com.liang" />
+	
+	<!-- 提供该PropertyPlaceholderConfigurer bean支持把properties文件中的信息读取到XML配置文件的表达式中 -->
+    <!-- 从Spring2.5开始引入命名空间配置加载properties文件到XML -->
+    <context:property-placeholder location="classpath:/config/database/mongodb.properties" />					
+    
+    <mongod:mongo-client id="mongo" host="${db.host}" port="${db.port}" credentials="${db.username}:${db.password}@${db.database}">
+    	<mongod:client-options write-concern="SAFE"/>
+    </mongod:mongo-client>
+    
+    <!-- 通过工厂Bean创建mongo连接实例,没有密码就把username和password属性删除了-->
+    <mongod:db-factory id="mongoDbFactory" dbname="${db.database}" mongo-ref="mongo"/>
+    
+    <!-- mongo模板操作对象 -->
+    <bean id="mongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
+        <constructor-arg name="mongoDbFactory" ref="mongoDbFactory"/>
+    </bean>
+    
+    <!-- MongoDB GridFS Template 支持，操作mongodb存放的文件 -->
+    <mongod:mapping-converter id="converter" db-factory-ref="mongoDbFactory"/>
+    <bean id="gridFsTemplate" class="org.springframework.data.mongodb.gridfs.GridFsTemplate">
+      <constructor-arg ref="mongoDbFactory"/>
+      <constructor-arg ref="converter"/>
+    </bean>
+</beans>						

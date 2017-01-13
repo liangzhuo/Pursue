@@ -1,0 +1,131 @@
+1.注解式控制器
+一、Spring2.5之前，我们都是通过实现Controller接口或其实现来定义我们的处理器类。已经@Deprecated。
+ 
+二、Spring2.5引入注解式处理器支持，通过@Controller 和 @RequestMapping注解定义我们的处理器类。
+并且提供了一组强大的注解：
+
+需要通过处理器映射DefaultAnnotationHandlerMapping和处理器适配器
+AnnotationMethodHandlerAdapter来开启支持@Controller 和
+@RequestMapping注解的处理器。
+
+@Controller：用于标识是处理器类；
+@RequestMapping：请求到处理器功能方法的映射规则；
+@RequestParam：请求参数到处理器功能处理方法的方法参数上的绑定；
+@ModelAttribute：请求参数到命令对象的绑定；
+@SessionAttributes：用于声明session级别存储的属性，放置在处理器类上，通常列出
+模型属性（如@ModelAttribute）对应的名称，则这些属性会透明的保存到session中；
+@InitBinder：自定义数据绑定注册支持，用于将请求参数转换到命令对象属性的对应类型；
+
+三、Spring3.0引入RESTful架构风格支持(通过@PathVariable注解和一些其他特性支持),且又引入了
+更多的注解支持：
+@CookieValue：cookie数据到处理器功能处理方法的方法参数上的绑定；
+@RequestHeader：请求头（header）数据到处理器功能处理方法的方法参数上的绑定；
+@RequestBody：请求的body体的绑定（通过HttpMessageConverter进行类型转换）；
+@ResponseBody：处理器功能处理方法的返回值作为响应体（通过HttpMessageConverter进行类型转换）；
+@ResponseStatus：定义处理器功能处理方法/异常处理器返回的状态码和原因；
+@ExceptionHandler：注解式声明异常处理器；
+@PathVariable：请求URI中的模板变量部分到处理器功能处理方法的方法参数上的绑定，
+从而支持RESTful架构风格的URI；
+ 
+四、Spring3.1使用新的HandlerMapping 和 HandlerAdapter来支持@Contoller和@RequestMapping
+注解处理器。
+新的@Contoller和@RequestMapping注解支持类：处理器映射RequestMappingHandlerMapping
+和处理器适配器RequestMappingHandlerAdapter组合来代替Spring2.5开始的处理器映射DefaultAnnotationHandlerMapping和处理器适配器AnnotationMethodHandlerAdapter，
+提供更多的扩展点。
+
+URL路径映射：使用URL映射请求到处理器的功能处理方法；
+请求方法映射限定：如限定功能处理方法只处理GET请求；
+请求参数映射限定：如限定只处理包含“abc”请求参数的请求；
+请求头映射限定：如限定只处理“Accept=application/json”的请求。
+
+1、HandlerMapping实现：使用DefaultAnnotationHandlerMapping（spring3.1之前）或RequestMappingHandlerMapping（spring3.1）
+替换之前的BeanNameUrlHandlerMapping。
+注解式处理器映射会扫描spring容器中的bean，发现bean实现类上拥有
+@Controller或@RequestMapping注解的bean，并将它们作为处理器。
+ 
+2、HandlerAdapter实现：使用AnnotationMethodHandlerAdapter（spring3.1之前）或RequestMappingHandlerAdapter（spring3.1）替换之前的SimpleControllerHandlerAdapter。
+注解式处理器适配器会通过反射调用相应的功能处理方法（方法上拥有@RequestMapping注解）。
+
+
+请求映射
+http请求信息包含六部分信息：
+①请求方法，如GET或POST，表示提交的方式；
+②URL，请求的地址信息；
+③协议及版本；
+④请求头信息（包括Cookie信息）；
+⑤回车换行（CRLF）；
+⑥请求内容区（即请求的内容或数据），如表单提交时的参数数据、URL请求参数（?abc=123 ？后边的）等。
+想要了解HTTP/1.1协议，请访问http://tools.ietf.org/html/rfc2616。
+那此处我们可以看到有①、②、④、⑥一般是可变的，因此我们可以这些信息进行请求到
+处理器的功能处理方法的映射，因此请求的映射分为如下几种：
+URL路径映射：使用URL映射请求到处理器的功能处理方法；
+请求方法映射限定：如限定功能处理方法只处理GET请求；
+请求参数映射限定：如限定只处理包含“abc”请求参数的请求；
+请求头映射限定：如限定只处理“Accept=application/json”的请求。
+
+
+6.5.1、URL路径映射
+6.5.1.1、普通URL路径映射
+@RequestMapping(value={"/test1", "/user/create"})：多个URL路径可以映射到同一个处理器的功能处理方法。
+6.5.1.2、URI模板模式映射
+@RequestMapping(value="/users/{userId}")：{×××}占位符， 请求的URL可以是 “/users/123456”或
+“/users/abcd”，通过6.6.5讲的通过@PathVariable可以提取URI模板模式中的{×××}中的×××变量。
+@RequestMapping(value="/users/{userId}/create")：这样也是可以的，请求的URL可以是“/users/123/create”。
+@RequestMapping(value="/users/{userId}/topics/{topicId}")：这样也是可以的，请求的URL可以是“/users/123/topics/123”。
+6.5.1.3、Ant风格的URL路径映射
+@RequestMapping(value="/users/**")：可以匹配“/users/abc/abc”，但“/users/123”将会被【URI模板模式映射中的“/users/{userId}”模式优先映射到】【详见4.14的最长匹配优先】。
+ 
+@RequestMapping(value="/product?")：可匹配“/product1”或“/producta”，但不匹配“/product”或“/productaa”;
+@RequestMapping(value="/product*")：可匹配“/productabc”或“/product”，但不匹配“/productabc/abc”;
+@RequestMapping(value="/product/*")：可匹配“/product/abc”，但不匹配“/productabc”;
+@RequestMapping(value="/products/**/{productId}")：可匹配“/products/abc/abc/123”或“/products/123”，也就是Ant风格和URI模板变量风格可混用;
+ 
+此处需要注意的是【4.14中提到的最长匹配优先】，Ant风格的模式请参考4.14。
+6.5.1.4、正则表达式风格的URL路径映射
+从Spring3.0开始支持正则表达式风格的URL路径映射，格式为{变量名:正则表达式}，这样我们就可以通过6.6.5讲的通过@PathVariable提取模式中的{×××：正则表达式匹配的值}中的×××变量了。
+ 
+@RequestMapping(value="/products/{categoryCode:\\d+}-{pageNumber:\\d+}")：可以匹配“/products/123-1”，但不能匹配“/products/abc-1”，这样可以设计更加严格的规则。
+ 
+正则表达式风格的URL路径映射是一种特殊的URI模板模式映射：
+URI模板模式映射是{userId}，不能指定模板变量的数据类型，如是数字还是字符串；
+正则表达式风格的URL路径映射，可以指定模板变量的数据类型，可以将规则写的相当复杂。
+
+
+6.5.1.5、组合使用是“或”的关系
+如 @RequestMapping(value={"/test1", "/user/create"}) 组合使用是或的关系，即“/test1”或“/user/create”请求URL路径都可以映射到@RequestMapping指定的功能处理方法。
+
+6.5.2.2、组合使用是“或”的关系
+@RequestMapping(value="/methodOr", method = {RequestMethod.POST, RequestMethod.GET})：即请求方法可以是 GET 或 POST。
+ 
+提示：
+1、一般浏览器只支持GET、POST请求方法，如想浏览器支持PUT、DELETE等请求方法只能模拟，稍候章节介绍。
+2、除了GET、POST，还有HEAD、OPTIONS、PUT、DELETE、TRACE。
+3、DispatcherServlet默认开启对 GET、POST、PUT、DELETE、HEAD的支持；
+4、如果需要支持OPTIONS、TRACE，请添加DispatcherServlet在web.xml的初始化参数：dispatchOptionsRequest 和 dispatchTraceRequest 为true。
+
+请求头数据映射限定
+@RequestMapping(value="/header/test1", headers = "Accept")：表示请求的URL必须为“/header/test1”
+且 请求头中必须有Accept参数才能匹配。
+
+@RequestMapping(value="/header/test1", headers = "abc")：表示请求的URL必须为“/header/test1”
+且 请求头中必须有abc参数才能匹配，如图6-8时可匹配。
+
+6.5.4.3、请求头数据中没有指定参数名
+@RequestMapping(value="/header/test2", headers = "!abc")：表示请求的URL必须为“/header/test2”
+且 请求头中必须没有abc参数才能匹配。（将Modify Header的abc参数值删除即可）。
+
+6.5.4.4、请求头数据中指定参数名=值
+@RequestMapping(value="/header/test3", headers = "Content-Type=application/json")：表示请求的URL必须为“/header/test3” 且 请求头中必须有“Content-Type=application/json”参数即可匹配。（将Modify Header的Content-Type参数值改为“application/json”即可）；
+
+@RequestMapping(value="/header/test4", headers = "Accept=application/json")：表示请求的URL必须为“/header/test4” 且 请求头中必须有“Accept =application/json”参数即可匹配。（将Modify Header的Accept参数值改为“application/json”即可）
+
+@RequestMapping(value="/header/test5", headers = "Accept=text/*") ：表示请求的URL必须为“/header/test5” 且 请求头中必须有如“Accept=text/plain”参数即可匹配。（将Modify Header的Accept参数值改为“text/plain”即可）；
+
+@RequestMapping(value="/header/test6", headers = "Accept=*/*") ：表示请求的URL必须为“/header/test6” 且 请求头中必须有任意Accept参数即可匹配。（将Modify Header的Accept参数值改为“text/html”或“application/xml”等都可以）。
+
+6.5.4.5、请求头数据中指定参数名!=值
+@RequestMapping(value="/header/test7", headers = "Accept!=text/vnd.wap.wml")：表示请求的URL必须为“/header/test7” 且 请求头中必须有“Accept”参数但值不等于“text/vnd.wap.wml”即可匹配。
+
+6.5.4.6、组合使用是“且”的关系
+@RequestMapping(value="/header/test8", headers = {"Accept!=text/vnd.wap.wml","abc=123"})：表示请求的URL必须为“/header/test8” 且 请求头中必须有“Accept”参数但值不等于“text/vnd.wap.wml”且 请求中必须有参数“abc=123”即可匹配。
+ 

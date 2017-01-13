@@ -1,0 +1,26 @@
+7.3、数据格式化
+7.3.1、架构
+1、格式化转换器：提供格式化转换的实现支持。
+一共有如下两组四个接口：
+（1、Printer接口：格式化显示接口，将T类型的对象根据Locale信息以某种格式进行打印显示（即返回字符串形式）；
+（2、Parser接口：解析接口，根据Locale信息解析字符串到T类型的对象；
+（3、Formatter接口：格式化SPI接口，继承Printer和Parser接口，完成T类型对象的格式化和解析功能；
+（4、AnnotationFormatterFactory接口：注解驱动的字段格式化工厂，用于创建带注解的对象字段的Printer和Parser，即用于格式化和解析带注解的对象字段。
+
+2、格式化转换器注册器、格式化服务：提供类型转换器注册支持，运行时类型转换API支持。
+一个有如下两种接口：
+（1、FormatterRegistry：格式化转换器注册器，用于注册格式化转换器（Formatter、Printer和Parser、AnnotationFormatterFactory）；
+（2、FormattingConversionService：继承自ConversionService，运行时类型转换和格式化服务接口，提供运行期类型转换和格式化的支持。
+我们可以看到FormattingConversionService内部实现如上所示，当你调用convert方法时：
+⑴若是S类型----->String：调用私有的静态内部类PrinterConverter，其又调用相应的Printer的实现进行格式化；
+⑵若是String----->T类型：调用私有的静态内部类ParserConverter，其又调用相应的Parser的实现进行解析；
+⑶若是A注解类型注解的S类型----->String：调用私有的静态内部类AnnotationPrinterConverter，其又调用相应的AnnotationFormatterFactory的getPrinter获取Printer的实现进行格式化；
+⑷若是String----->A注解类型注解的T类型：调用私有的静态内部类AnnotationParserConverter，其又调用相应的AnnotationFormatterFactory的getParser获取Parser的实现进行解析。
+
+7.3.3.1、类型级别的解析/格式化
+一、直接使用Formatter SPI进行解析/格式化
+
+parse方法：将带格式的字符串根据Locale信息解析为相应的BigDecimal类型数据；
+print方法：将BigDecimal类型数据根据Locale信息格式化为字符串数据进行展示。
+ 
+不同于Convert SPI，Formatter SPI可以根据本地化（Locale）信息进行解析/格式化。

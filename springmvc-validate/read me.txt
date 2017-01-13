@@ -1,0 +1,38 @@
+数据验证
+1、数据绑定失败：比如需要数字却输入了字母；
+2、数据不合法：可以认为是业务错误，通过自定义验证器验证，如用户名长度必须在5-20之间，我们却输入了100个字符等；
+3、错误对象：当我们数据绑定失败或验证失败后，错误信息存放的对象，我们叫错误对象，在Spring Web MVC中Errors是具体的代表者；线程不安全对象；
+4、错误消息：是硬编码，还是可配置？实际工作应该使用配置方式，我们只是把错误码（errorCode）放入错误对象，在展示时读取相应的错误消息配置文件来获取要显示的错误消息(errorMessage)；
+
+Errors：存储和暴露关于数据绑定错误和验证错误相关信息的接口，提供了相关存储和获取错误消息的方法：
+getFieldValue：可以得到验证失败的失败值，这是其他Web层框架很少支持的，这样就可以给用户展示出错时的值（而不是空或其他的默认值等）。
+
+BindingResult：代表数据绑定的结果，继承了Errors接口。
+BindException：代表数据绑定的异常，它继承Exception，并实现了BindingResult，这是内部使用的错误对象。
+
+
+数据绑定失败（类型不匹配）会自动生成如下错误码（错误码对应的错误消息按照如下顺序依次查找）：
+1、typeMismatch.命令对象名.属性名
+2、typeMismatch.属性名
+3、typeMismatch.属性全限定类名（包名.类名）
+4、typeMismatch
+ 
+⊙内部使用MessageCodesResolver解析数据绑定错误到错误码，默认DefaultMessageCodesResolver，因此想要详细了解如何解析请看其javadoc；
+ 
+⊙建议使用第1个进行错误码的配置。
+ 
+因此修改我们的messages.properties添加如下错误消息（需要执行NativeToAscii）：
+
+
+如MultiActionController控制器相关方法没有提供给我们errors对象（Errors），我们应该怎么进行错误处理呢？
+ 
+此处给大家一个思路，errors本质就是一个Errors接口实现，而且在页面要读取相关的错误对象，该错误对象应该存放在模型对象里边，因此我们可以自己创建个errors对象并将其添加到模型对象中即可。
+
+BindException errors = new BindException(user, getCommandName(user));  
+//如果用户名为空  
+if(!StringUtils.hasLength(user.getUsername())) {  
+    errors.rejectValue("username", "username.not.empty");  
+}  
+if(errors.hasErrors()) {  
+    return new ModelAndView(getCreateView()).addAllObjects(errors.getModel());  
+} 

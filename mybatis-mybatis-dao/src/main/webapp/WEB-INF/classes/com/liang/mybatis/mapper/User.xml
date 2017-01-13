@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+			"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 此处命名空间为使用合理描述参数和SQL语句返回值的接口 -->
+<mapper namespace="com.liang.mybatis.inter.IUserOperation">
+	<resultMap type="User" id="resultListUser">
+		<id property="id" column="id"/>
+		<result property="username" column="username"/>
+		<result property="age" column="age"/>
+		<result property="address" column="address"/>
+	</resultMap>
+	
+	<resultMap type="Article" id="resultUserArticleList">
+		<id property="id" column="id"/>
+		<result property="title" column="title"/>
+		<result property="content" column="content"/>
+		
+		<!-- 内部重新定义实体映射，不能复用 -->
+		<!--  
+		<association property="user" javaType="User">
+			<id property="id" column="id"/>
+			<result property="username" column="username"/>
+			<result property="age" column="age"/>
+			<result property="address" column="address"/>
+		</association>
+		-->
+		<!-- 推荐使用如下方法 -->
+		<association property="user" javaType="User" resultMap="resultListUser"/>
+	</resultMap>
+	
+	<select id="selectUserById" parameterType="int" resultType="User">
+		select * from user where id = #{id}
+	</select>
+	
+	<select id="selectUsers" parameterType="string" resultMap="resultListUser">
+		select * from user where username like #{username}
+	</select>
+	
+	<!-- 
+		useGeneratedKeys=true 通知MyBatis获取由数据库自动生成的主键
+		keyProperty="id" 指定把获取到的主键值注入到User的id属性中
+	 -->
+	<insert id="addUser" parameterType="User" useGeneratedKeys="true"
+			keyProperty="id">
+		insert into user(username,age,address) values(#{username},#{age},#{address})
+	</insert>
+	
+	<update id="updateUser" parameterType="User">
+		update user set username = #{username},age = #{age}, address = #{address}
+		where id = #{id}
+	</update>
+	
+	<delete id="deleteUser" parameterType="int">
+		delete from user where id = #{id}
+	</delete>
+	
+	<select id="getUserArticles" parameterType="int" resultMap="resultUserArticleList">
+		select user.id,user.username,user.age,user.address,article.id,article.title,article.content 
+		from user,article where user.id=article.userid and user.id = #{id}
+	</select>
+</mapper>

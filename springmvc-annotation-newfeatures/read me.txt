@@ -1,0 +1,50 @@
+6.6.5、生产者、消费者限定
+
+一、Media Type：
+常见媒体类型：
+text/html ： HTML格式          text/plain ：纯文本格式             text/xml ：XML格式
+image/gif ：gif图片格式          image/jpeg ：jpg图片格式          image/png：png图片格式
+application/x-www-form-urlencoded ： <form encType=””>中默认的encType，form表单数据被编码为key/value格式发送到服务器（表单默认的提交数据的格式）。
+multipart/form-data ： 当你需要在表单中进行文件上传时，就需要使用该格式；
+ 
+application/xhtml+xml ：XHTML格式               application/xml     ： XML数据格式 
+application/atom+xml  ：Atom XML聚合格式    application/json    ： JSON数据格式
+application/pdf       ：pdf格式                        application/msword  ： Word文档格式
+application/octet-stream ： 二进制流数据（如常见的文件下载）。
+
+二、Content-Type内容类型，即请求/响应的内容区数据的媒体类型；
+2.1、请求头的内容类型，表示发送到服务器的内容数据的媒体类型；
+request中设置请求头“Content-Type: application/x-www-form-urlencoded”表示请求的数据为key/value数据；
+
+①客户端—发送请求—服务器：客户端通过请求头Content-Type指定内容体的媒体类型（即客户端此时是生产者），服务器根据Content-Type消费内容体数据（即服务器此时是消费者）；
+②服务器—发送请求—客户端：服务器生产响应头Content-Type指定的响应体数据（即服务器此时是生产者），客户端根据Content-Type消费内容体数据（即客户端此时是消费者）。
+
+实际项目使用Accept请求头是比较麻烦的，现在大多数开放平台（国内的新浪微博、淘宝、腾讯等开放平台）使用如下两种方式：
+扩展名：如response/ContentType.json response/ContentType.xml方式，使用扩展名表示需要什么类型的数据；
+参数：如response/ContentType?format=json response/ContentType?format=xml，使用参数表示需要什么类型的数据；
+
+ 一、功能处理方法是消费者
+@RequestMapping(value = "/consumes", consumes = {"application/json"})：此处使用consumes来指定功能处理方法能消费的媒体类型，其通过请求头的“Content-Type”来判断。
+
+二、功能处理方法是生产者
+@RequestMapping(value = "/produces", produces = "application/json")：表示将功能处理方法将生产json格式的数据，此时根据请求头中的Accept进行匹配，如请求头“Accept:application/json”时即可匹配;
+@RequestMapping(value = "/produces", produces = "application/xml")：表示将功能处理方法将生产xml格式的数据，此时根据请求头中的Accept进行匹配，如请求头“Accept:application/xml”时即可匹配。
+
+当你有如下Accept头：
+①Accept：text/html,application/xml,application/json
+      将按照如下顺序进行produces的匹配 ①text/html ②application/xml ③application/json
+②Accept：application/xml;q=0.5,application/json;q=0.9,text/html
+      将按照如下顺序进行produces的匹配 ①text/html ②application/json ③application/xml
+      q参数为媒体类型的质量因子，越大则优先权越高(从0到1)
+③Accept：*/*,text/*,text/html
+      将按照如下顺序进行produces的匹配 ①text/html ②text/* ③*/*
+      
+三、窄化时是覆盖 而 非继承
+如类级别的映射为 @RequestMapping(value="/narrow", produces="text/html")，方法级别的为@RequestMapping(produces="application/xml")，此时方法级别的映射将覆盖类级别的，因此请求头“Accept:application/xml”是成功的，而“text/html”将报406错误码，表示不支持的请求媒体类型。      
+
+四、组合使用是“或”的关系
+@RequestMapping(produces={"text/html", "application/json"}) ：将匹配“Accept:text/html”或“Accept:application/json”。
+
+五、问题
+消费的数据，如JSON数据、XML数据都是由我们读取请求的InputStream并根据需要自己转换为相应的模型数据，比较麻烦；
+生产的数据，如JSON数据、XML数据都是由我们自己先把模型数据转换为json/xml等数据，然后输出响应流，也是比较麻烦的。

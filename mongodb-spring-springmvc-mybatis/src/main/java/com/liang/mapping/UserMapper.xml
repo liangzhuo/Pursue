@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+			"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 此处命名空间为使用合理描述参数和SQL语句返回值的接口 -->
+<mapper namespace="com.liang.dao.IUserDAO">
+	
+	<resultMap id="userResultMap" type="User">
+		<id property="id" column="id"/>
+		<result property="username" column="username"/>
+		<result property="password" column="password"/>
+		<result property="address" column="address"/>
+	</resultMap>
+	
+	<select id="getList" resultMap="userResultMap" parameterType="User">
+		select id,username,password,address from t_user
+		<where>
+			<if test="id != null">
+				id = #{id}
+			</if>
+		</where>
+		limit 0,5
+	</select>
+	
+	<select id="getPageList" resultMap="userResultMap" parameterType="map">
+		select id,username,password,address from t_user
+		<where>
+			<if test="id != null">
+				id = #{id}
+			</if>
+		</where>
+	</select>
+	
+	<select id="selectById" parameterType="int" resultType="User">
+		select * from t_user where id = #{id}
+	</select>
+	
+	<insert id="add" parameterType="User">
+		insert into t_user(id,username,password,address)
+		values (#{id},#{username},#{password},#{address})
+	</insert>
+	
+	<update id="update">
+		update t_user set
+			username = #{username},
+			password = #{password},
+			address = #{address}
+		where id = #{id}
+	</update>
+	
+	<delete id="deleteById">
+		delete from t_user where id = #{id}
+	</delete>
+	
+</mapper>

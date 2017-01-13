@@ -1,0 +1,16 @@
+package com.liang.springmvc.web.controller.paramtype;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+public class PathVariableTypeController {
+	@RequestMapping(value="/users/${userId}/topics/{topicId}")
+	public String test(
+			@PathVariable(value="userId")	int userId,
+			@PathVariable(value="topicId")	int topicId
+			){
+		return "success";
+	}
+}

@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans 
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+						http://www.springframework.org/schema/beans/spring-beans-3.0.xsd  
+						http://www.springframework.org/schema/context                
+						http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+	<!-- 通过构造器参数索引依赖注入 -->					
+	<bean id="byIndex" class="com.zyff.spring.HelloImpl">
+		<constructor-arg index="0" value="liang"/>
+		<constructor-arg index="1" value="1"/>
+	</bean>
+	
+	<!-- 通过构造器参数类型方式依赖注入 -->
+	<bean id="byType" class="com.zyff.spring.HelloImpl" >
+		<constructor-arg type="java.lang.String" value="liang"/>
+		<constructor-arg type="int" value="2"/>
+	</bean>
+	
+	<!-- 通过构造器参数名称方式依赖注入 -->
+	<bean id="byName" class="com.zyff.spring.HelloImpl">
+		<constructor-arg name="message" value="liang"/>
+		<constructor-arg name="index" value="3"/>
+	</bean>
+	
+	<!-- ConstructorProperties注解方式不工作，只对构造器起作用，不建议使用参数名称进行构造器注入 -->
+	<!-- 
+	<bean id="byIndex" class="com.zyff.spring.HelloApiStaticFactory" factory-method="newInstance">
+		<constructor-arg index="0" value="liang"/>
+		<constructor-arg index="1" value="1"/>
+	</bean>
+	
+	<bean id="byType" class="com.zyff.spring.HelloApiStaticFactory" factory-method="newInstance">
+		<constructor-arg type="java.lang.String" value="liang"/>
+		<constructor-arg type="int" value="2"/>
+	</bean>
+	
+	<bean id="byName" class="com.zyff.spring.HelloApiStaticFactory" factory-method="newInstance">
+		<constructor-arg name="message" value="liang"/>
+		<constructor-arg name="index" value="3"/>
+	</bean>
+	 -->
+	 
+	 
+	<!-- 
+	<bean id="factoryBean" class="com.zyff.spring.HelloApiInstanceFactory"></bean>
+	<bean id="byIndex" factory-bean="factoryBean" factory-method="newInstance">
+		<constructor-arg index="0" value="liang"/>
+		<constructor-arg index="1" value="1"/>
+	</bean>
+	
+	<bean id="byType" factory-bean="factoryBean" factory-method="newInstance">
+		<constructor-arg type="java.lang.String" value="liang"/>
+		<constructor-arg type="int" value="2"/>
+	</bean>
+	
+	<bean id="byName" factory-bean="factoryBean" factory-method="newInstance">
+		<constructor-arg name="message" value="liang"/>
+		<constructor-arg name="index" value="3"/>
+	</bean>
+	 -->
+	 
+	<bean id="bean" class="com.zyff.spring.HelloImpl">
+		<property name="message" value="Hello world!"/>
+		<property name="index" value="1"/>
+	</bean>
+	
+	<bean id="booleanBean1" class="com.zyff.spring.BooleanBean">
+		<property name="success" value="on"/>
+	</bean>
+	<bean id="booleanBean2" class="com.zyff.spring.BooleanBean">
+		<property name="success" value="yes"/>
+	</bean>
+	<bean id="booleanBean3" class="com.zyff.spring.BooleanBean">
+		<property name="success" value="1"/>
+	</bean>
+	
+	
+	<bean id="bean1" class="java.lang.String">
+		<constructor-arg index="0" value="test"/>
+	</bean>
+	<bean id="bean2" class="java.lang.String">
+		<constructor-arg index="0" value="test"/>
+	</bean>
+	<bean id="idRefBean1" class="com.zyff.spring.IdRefBean">
+		<property name="id">
+			<!-- 在初始化时检验bean是否存在，推荐使用 -->
+			<idref bean="bean2"/>
+		</property>
+	</bean>
+	<bean id="idRefBean2" class="com.zyff.spring.IdRefBean">
+		<property name="id">
+			<!-- 在使用时才验证bean是否存在，不推荐使用，不易发现问题 -->
+			<idref local="bean2"/>
+		</property>
+	</bean>
+	
+	
+	<bean id="listBean" class="com.zyff.spring.ListBean">
+		<property name="values">
+			<!-- value-type:如果既没有指定value-type属性，list也不是泛型的则默认是String类型 -->
+			<!-- 可选的merge属性，用于父子bean情况是否合并list条目 -->
+			<list value-type="java.lang.String" merge="default">
+				<value>1</value>
+				<value>2</value>
+				<value>3</value>
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="setBean" class="com.zyff.spring.CollectionBean">
+		<property name="values">
+			<list>
+				<value>1</value>
+				<value>2</value>
+				<value>3</value>
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="array" class="com.zyff.spring.ArrayBean">
+		<property name="array">
+			<!-- 一维数组 -->
+			<array value-type="java.lang.String" merge="default">
+				<value>1</value>
+				<value>2</value>
+			</array>
+		</property>
+		<property name="array2">
+			<!-- 二维数组 -->
+			<array>
+				<array>
+					<value>1</value>
+				</array>
+				<array>
+					<value>2</value>
+				</array>
+			</array>
+		</property>
+	</bean>
+	
+	
+	<bean id="mapBean" class="com.zyff.spring.MapBean">
+		<property name="values">
+			<map key-type="java.lang.String" value-type="java.lang.String">
+				<entry>
+					<key><value>num</value></key>
+					<value>1</value>
+				</entry>
+				<entry key="name" value="liang"/>
+			</map>
+		</property>
+	</bean>
+	
+	<bean id="propertiesBean" class="com.zyff.spring.PropertiesBean">
+		<property name="properties">
+			<!-- 这里的value-type配置不起作用，Properties的键和值都是String类型 -->
+			<!-- 
+			<props value-type="int" merge="default">
+				<prop key="1">11</prop>
+				<prop key="2">11sss</prop>
+			</props>
+			 -->
+			 <value>
+			 	1=11
+			 	2=22;
+			 	3=33,
+			 	4=44
+			 </value>
+		</property>
+	</bean>
+	
+	<bean id="helloApi1" class="com.zyff.spring.HelloImpl"></bean>
+	<bean id="hello1" class="com.zyff.spring.HelloApiDecorator">
+		<constructor-arg index="0" ref="helloApi1"/>
+	</bean>
+	<bean id="hello2" class="com.zyff.spring.HelloApiDecorator">
+		<property name="helloApi" ref="helloApi1"/>
+	</bean>
+	
+	<bean id="helloApi" class="com.zyff.spring.HelloImpl">
+		<property name="message" value="children"/>
+		<property name="index" value="1"/>
+	</bean>
+	<bean id="children" class="com.zyff.spring.HelloApiDecorator">
+		<constructor-arg index="0">
+			<ref local="helloApi"/>
+		</constructor-arg>
+	</bean>
+	
+	<!-- 
+	<bean id="parent" class="com.zyff.spring.HelloApiDecorator">
+		<property name="helloApi">
+			<ref parent="helloApi"/>
+		</property>
+	</bean>
+	 -->
+	
+	
+	<bean id="inner" class="com.zyff.spring.HelloApiDecorator">
+		<property name="helloApi">
+			<bean id="innerApi" class="com.zyff.spring.HelloImpl"/>
+		</property>
+	</bean>
+</beans>  

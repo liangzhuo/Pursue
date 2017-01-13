@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+			"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 此处命名空间为使用合理描述参数和SQL语句返回值的接口 -->
+<mapper namespace="com.liang.mybatis.inter.IUserOperation">
+	<resultMap type="User" id="resultListUser">
+		<id property="id" column="id"/>
+		<result property="username" column="username"/>
+		<result property="age" column="age"/>
+		<result property="address" column="address"/>
+	</resultMap>
+	<select id="selectUserById" parameterType="int" resultType="User">
+		select * from user where id = #{id}
+	</select>
+	<select id="selectUsers" parameterType="string" resultMap="resultListUser">
+		select * from user where username like #{username}
+	</select>
+	<!-- 
+		useGeneratedKeys=true 通知MyBatis获取由数据库自动生成的主键
+		keyProperty="id" 指定把获取到的主键值注入到User的id属性中
+	 -->
+	<insert id="addUser" parameterType="User" useGeneratedKeys="true"
+			keyProperty="id">
+		insert into user(username,age,address) values(#{username},#{age},#{address})
+	</insert>
+	
+	<update id="updateUser" parameterType="User">
+		update user set username = #{username},age = #{age}, address = #{address}
+		where id = #{id}
+	</update>
+	
+	<delete id="deleteUser" parameterType="int">
+		delete from user where id = #{id}
+	</delete>
+	
+	<!-- dynamic sql -->
+	<select id="dynamicIfTest" parameterType="User" resultType="User">
+		select * from user where 1=1
+		<if test="username!=null">
+			and username = #{username}
+		</if>
+		<if test="age!=0">
+			and age = #{age}
+		</if>
+		<if test="address!=null">
+			and address = #{address}
+		</if>
+	</select>
+	
+	<select id="dynamicChooseTest" parameterType="User" resultType="User">
+		select * from user where 1=1
+		<choose>
+			<when test="username!=null">
+				and username = #{username}
+			</when>
+			<when test="age!=0">
+				and age = #{age}
+			</when>
+			<otherwise>
+				and address = #{address}
+			</otherwise>
+		</choose>
+	</select>
+	
+	<!-- 前缀和后缀实现where查询 -->
+	<select id="dynamicTrimTest" parameterType="User" resultType="User">
+		select * from user 
+		<trim prefix="where" prefixOverrides="and|or">
+			<if test="username!=null">
+				username = #{username}
+			</if>
+			<if test="age!=0">
+				and age = #{age}
+			</if>
+			<if test="address!=null">
+				or address = #{address}
+			</if>
+		</trim>
+	</select>
+	
+	<!-- 智能忽略掉and或or -->
+	<select id="dynamicWhereTest" parameterType="User" resultType="User">
+		select * from user
+		<where>
+			<if test="username!=null">
+				username = #{username}
+			</if>
+			<if test="age!=0">
+				and age = #{age}
+			</if>
+			<if test="address!=null">
+				or address = #{address}
+			</if>
+		</where>
+	</select>
+	
+	<!-- 动态忽略逗号 -->
+	<update id="dynamicSetTest" parameterType="User">
+		update user
+		<set>
+			<if test="username!=null">
+				username = #{username},
+			</if>
+			<if test="age!=0">
+				age = #{age},
+			</if>
+			<if test="address!=null">
+				address = #{address}
+			</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<!-- foreach -->
+	<select id="dynamicForEachListTest" resultType="User">
+		select * from user where id in 
+		<foreach collection="list" index="index" item="item" open="("
+				separator="," close=")">
+			#{item}	
+		</foreach>
+	</select>
+	
+	<select id="dynamicForEachArrayTest" resultType="User">
+		select * from user where id in 
+		<foreach collection="array" index="index" item="item" open="("
+				separator="," close=")">
+			#{item}	
+		</foreach>
+	</select>
+	
+	<select id="dynamicForEachMapTest" resultType="User">
+		select * from user where  
+		<foreach collection="map" index="key" item="item" open=""
+				separator="and" close="">
+			${key} = #{item}	
+		</foreach>
+	</select>
+	
+</mapper>

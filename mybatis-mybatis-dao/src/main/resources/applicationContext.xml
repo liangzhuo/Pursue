@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans 
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" 
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+						http://www.springframework.org/schema/beans/spring-beans-3.0.xsd  
+						http://www.springframework.org/schema/context                
+						http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+	<context:component-scan base-package="com.liang.mybatis.dao"/>
+	<context:component-scan base-package="com.liang.mybatis.service"/>
+		
+	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">  
+        <property name="locations">  
+           <list>  
+              <!-- 这里支持多种寻址方式：classpath和file -->  
+              <value>classpath*:config.properties</value>  
+              <!-- 推荐使用file的方式引入，这样可以将配置和代码分离 -->
+              <!--   
+              <value>file:/opt/demo/config/demo-mq.properties</value>  
+              <value>file:/opt/demo/config/demo-remote.properties</value>
+               -->  
+            </list>  
+        </property>
+        <!-- 过滤掉特殊占位符 -->
+        <property name="ignoreUnresolvablePlaceholders" value="true" />   
+    </bean> 
+	
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName" value="${driver}"/>
+		<property name="url" value="${url}"/>
+		<property name="username" value="${username}"/>
+		<property name="password" value="${password}"/>
+	</bean>		
+	
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<!-- dataSource属性指定要使用的连接池 -->
+		<property name="dataSource" ref="dataSource"/>
+		<!-- configLocation属性指定mybatis的核心文件 -->
+		<property name="configLocation" value="classpath:mybatis.xml"/>
+		<!-- 所有配置的mapper文件 -->
+		<property name="mapperLocations" value="classpath*:com/liang/mybatis/mapper/*.xml"></property>
+	</bean>
+	
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.liang.mybatis.inter"/>
+	</bean>		
+</beans>						

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans 
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+						http://www.springframework.org/schema/beans/spring-beans-3.0.xsd  
+						http://www.springframework.org/schema/context                
+						http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+	<!-- <import resource=""/> -->
+	
+	<!-- 不指定id，配置必须的全限定类名 -->
+	<!-- <bean class="com.zyff.spring.HelloImpl"/> -->
+	
+	<!-- 指定id，必须在IoC容器中唯一 -->
+	<!-- <bean id="hello" class="com.zyff.spring.HelloImpl"/> -->
+	<!-- <alias name="hello" alias="helloworld"/> --> 
+	
+	<!-- <bean id="hello1" name="alias1" class="com.zyff.spring.HelloImpl"/> -->
+	<!-- 如果id和name一样，IoC容器能检测到，并消除冲突 -->
+	<!-- <bean id="hello" name="hello" class="com.zyff.spring.HelloImpl"/> -->
+	
+	<!-- <bean name="bean1,alias11;alias12 alias13" class="com.zyff.spring.HelloImpl"/> -->
+	<!-- 当指定id时，name指定的标识符全部为别名 -->
+	<!-- <bean id="bean2" name="alias21;alias22 alias23" class="com.zyff.spring.HelloImpl"/> -->
+	
+	<!-- 标签指定别名，别名也必须在IoC容器中唯一 -->
+	<bean name="bean1" class="com.zyff.spring.HelloImpl"/>
+	<alias name="bean1" alias="alias1"/>
+	<alias name="bean1" alias="alias2"/>
+</beans>  

@@ -1,0 +1,64 @@
+1、@RequestParam绑定单个请求参数值；
+2、@PathVariable绑定URI模板变量值；
+3、@CookieValue绑定Cookie数据值
+4、@RequestHeader绑定请求头数据；
+5、@ModelValue绑定参数到命令对象；
+6、@SessionAttributes绑定命令对象到session；
+7、@RequestBody绑定请求的内容区数据并能进行自动类型转换等。
+8、@RequestPart绑定“multipart/data”数据，除了能绑定@RequestParam能做到的请求参数外，还能绑定上传的文件等。
+
+6.6.1、功能处理方法支持的参数类型
+一、ServletRequest/HttpServletRequest 和 ServletResponse/HttpServletResponse
+Spring Web MVC框架会自动帮助我们把相应的Servlet请求/响应（Servlet API）作为参数传递过来。
+
+二、InputStream/OutputStream 和 Reader/Writer
+requestBodyIn：获取请求的内容区字节流，等价于request.getInputStream();
+responseBodyOut：获取相应的内容区字节流，等价于response.getOutputStream()。
+
+reader：获取请求的内容区字符流，等价于request.getReader();
+writer：获取相应的内容区字符流，等价于response.getWriter()。
+
+InputStream/OutputStream 和 Reader/Writer两组不能同时使用，只能使用其中的一组。
+
+三、WebRequest/NativeWebRequest
+WebRequest是Spring Web MVC提供的统一请求访问接口，不仅仅可以访问请求相关数据（如参数区数据、请求头数据，但访问不到Cookie区数据），还可以访问会话和上下文中的数据；NativeWebRequest继承了WebRequest，并提供访问本地Servlet API的方法。
+① webRequest.getParameter：访问请求参数区的数据，可以通过getHeader()访问请求头数据；
+② webRequest.setAttribute/getAttribute：到指定的作用范围内取/放属性数据，Servlet定义的三个作用范围分别使用如下常量代表：
+            SCOPE_REQUEST ：代表请求作用范围；
+           SCOPE_SESSION ：代表会话作用范围；
+           SCOPE_GLOBAL_SESSION ：代表全局会话作用范围，即ServletContext上下文作用范围。 
+③ nativeWebRequest.getNativeRequest/nativeWebRequest.getNativeResponse：得到本地的Servlet API。
+
+四、HttpSession
+注意：session访问不是线程安全的，如果需要线程安全，需要设置AnnotationMethodHandlerAdapter或RequestMappingHandlerAdapter的synchronizeOnSession属性为true，即可线程安全的访问session。
+
+五、命令/表单对象
+Spring Web MVC能够自动将请求参数绑定到功能处理方法的命令/表单对象上。
+如果提交的表单（包含username和password文本域），将自动将请求参数绑定到命令对象user中去。
+
+六、Model、Map、ModelMap
+Spring Web MVC 提供Model、Map或ModelMap让我们能去暴露渲染视图需要的模型数据。
+从代码中我们可以总结出功能处理方法的返回值中的模型数据（如ModelAndView）会 合并 功能处理方法形式参数中的模型数据（如Model），但如果两者之间有同名的，返回值中的模型数据会覆盖形式参数中的模型数据。
+
+七、Errors/BindingResult
+错误对象紧跟在命令对象/表单对象之后
+
+八、其他杂项
+ java.util.Locale：得到当前请求的本地化信息，默认等价于ServletRequest.getLocale()，如果配置LocaleResolver解析器则由它决定Locale
+ 
+ 
+ 6.6.2、@RequestParam绑定单个请求参数值
+ @RequestParam用于将请求参数区数据映射到功能处理方法的参数上。
+ 表示请求中可以没有名字为username的参数，如果没有默认为null，此处需要注意如下几点：
+ 
+     原子类型：必须有值，否则抛出异常，如果允许空值请使用包装类代替。
+     Boolean包装类型类型：默认Boolean.FALSE，其他引用类型默认为null。
+     
+6.6.6、@ModelAttribute绑定请求参数到命令对象
+@ModelAttribute一个具有如下三个作用：
+①绑定请求参数到命令对象：放在功能处理方法的入参上时，用于将多个请求参数绑定到一个命令对象，从而简化绑定流程，而且自动暴露为模型数据用于视图页面展示时使用；
+②暴露表单引用对象为模型数据：放在处理器的一般方法（非功能处理方法）上时，是为表单准备要展示的表单引用对象，如注册时需要选择的所在城市等，而且在执行功能处理方法（@RequestMapping注解的方法）之前，自动添加到模型对象中，用于视图页面展示时使用；
+③暴露@RequestMapping方法返回值为模型数据：放在功能处理方法的返回值上时，是暴露功能处理方法的返回值为模型数据，用于视图页面展示时使用。     
+
+当URI模板变量和请求参数同名时，URI模板变量具有高优先权。
+
