@@ -120,7 +120,6 @@ public class MongoDBQuickTourTest {
 	public void testQueryDocuments(){
 		MongoCollection<Document> collection = database.getCollection("test");
 		Block<Document> printBlock = new Block<Document>() {
-			@Override
 			public void apply(final Document document) {
 				System.out.println(document.toJson());
 			}

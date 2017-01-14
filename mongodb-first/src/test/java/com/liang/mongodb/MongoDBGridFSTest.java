@@ -84,7 +84,6 @@ public class MongoDBGridFSTest {
 	@Test
 	public void testFindGridFS(){
 		Block block = new Block<GridFSFile>() {
-			@Override
 			public void apply(GridFSFile gridFSFile) {
 				System.out.println(gridFSFile.getFilename());
 			}
