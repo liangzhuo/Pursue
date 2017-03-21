@@ -49,7 +49,7 @@ var Ajax = {
 				}
 			}
 		};
-		XR.send(null)
+		XR.send(null);
 	}
 };
 var XR = false;
