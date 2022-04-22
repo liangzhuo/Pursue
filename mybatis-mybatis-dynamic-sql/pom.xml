@@ -10,7 +10,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.deploy>deploy</project.deploy> 
-    <springframework.version>3.2.13.RELEASE</springframework.version>
+    <springframework.version>5.3.19</springframework.version>
     <project.tomcat.version>7</project.tomcat.version> 
   </properties>
   
